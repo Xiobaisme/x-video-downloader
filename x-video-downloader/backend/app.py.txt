@@ -1,0 +1,28 @@
+from flask import Flask, request, send_file
+import yt_dlp
+import os
+import uuid
+
+app = Flask(__name__)
+
+DOWNLOAD_FOLDER = "downloads"
+os.makedirs(DOWNLOAD_FOLDER, exist_ok=True)
+
+@app.route("/download", methods=["POST"])
+def download_video():
+    url = request.form.get("url")
+    filename = f"{uuid.uuid4()}.mp4"
+    filepath = os.path.join(DOWNLOAD_FOLDER, filename)
+
+    ydl_opts = {
+        "outtmpl": filepath,
+        "format": "mp4"
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        ydl.download([url])
+
+    return send_file(filepath, as_attachment=True)
+
+if __name__ == "__main__":
+    app.run(debug=True)
